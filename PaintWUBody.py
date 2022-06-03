@@ -9,8 +9,9 @@ mpPose = mp.solutions.pose
 pose = mpPose.Pose()
 
 # Alto y ancho de frames
-width = 1200
-height = 800
+width = 600
+height = 400
+
 
 # Definicion de captura de camara 0, 1, 2, 3 (Dependiendo de qu e camara quiero usar)
 cap = cv2.VideoCapture(0)
@@ -28,6 +29,10 @@ b = 47
 inicio = time.time()
 contador = 1
 
+# Definicion del estado (0 = Dibujo constante / 1 = Personaje estatico)
+estado = 0
+
+
 # Definicion de fondo a usar
 fondo = cv2.imread("persp2.png")
 
@@ -35,9 +40,26 @@ fondo = cv2.imread("persp2.png")
 pp1 = 20
 
 # Periodo de reseteo de imagen
-T = 3
+T = 10
 
 while True:
+
+    cTime = time.time()
+    fps = 1 / (cTime - pTime)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    pTime = cTime
+    fin = time.time()
+    seg = int(fin - inicio)
+    #print(seg)
+
+    if estado == 1:
+        fondo = cv2.imread("persp2.png")
+    elif estado == 0:
+        if seg == (T * contador):
+            fondo = cv2.imread("persp2.png")
+            seg = 0
+            contador += 1
+    print(estado)
 
     success, img = cap.read()
     imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -61,21 +83,40 @@ while True:
                               mpDraw.DrawingSpec(color=(r, g, b), thickness=3, circle_radius=4))
 
         # Seleccion del punto especifico de referencia
-
-
         x1 = int(results.pose_landmarks.landmark[pp1].x * width)
         y1 = int(results.pose_landmarks.landmark[pp1].y * height)
 
-        #print(fondo.shape[0])
+        # print(fondo.shape[0])
 
         # Dibujo de circulo en punto de referencia
         cv2.circle(fondo, (x1, y1), 5, (255, 255, 255), 10)
 
-        """cv2.line(fondo, (0, 50), (600, 50), (255, 255, 255), 4)  # Linea horizontal en la pantalla
-        cv2.line(fondo, (150, 0), (150, 50), (255, 255, 255), 4)  # Primera linea de division
-        cv2.line(fondo, (300, 0), (300, 50), (255, 255, 255), 4)  # Segunda linea de division
-        cv2.line(fondo, (450, 0), (450, 50), (255, 255, 255), 4)  # Tercera linea de division
-        """
+        # Linea horizontal en la pantalla
+        cv2.line(fondo,
+                 (int(fondo.shape[1]/6)*2, int(fondo.shape[1]/15)),
+                 (int(fondo.shape[1]/6)*4, int(fondo.shape[1]/15)),
+                 (255, 255, 255), 4)
+
+        cv2.line(fondo,
+                 (int(fondo.shape[1] / 6) * 2, 0),
+                 (int(fondo.shape[1] / 6) * 2, int(fondo.shape[1] / 15)),
+                 (255, 255, 255), 4)
+
+        cv2.line(fondo,
+                 (int(fondo.shape[1] / 6) * 3, 0),
+                 (int(fondo.shape[1] / 6) * 3, int(fondo.shape[1] / 15)),
+                 (255, 255, 255), 4)
+
+        cv2.line(fondo,
+                 (int(fondo.shape[1] / 6) * 4, 0),
+                 (int(fondo.shape[1] / 6) * 4, int(fondo.shape[1] / 15)),
+                 (255, 255, 255), 4)
+
+
+        #cv2.line(fondo, (150, 0), (150, 50), (255, 255, 255), 4)  # Primera linea de division
+        #cv2.line(fondo, (300, 0), (300, 50), (255, 255, 255), 4)  # Segunda linea de division
+        #cv2.line(fondo, (450, 0), (450, 50), (255, 255, 255), 4)  # Tercera linea de division
+
 
         cv2.circle(fondo, (int(fondo.shape[1]/15), int(fondo.shape[0]/5)), 10, (12, 141, 232), 20)
         cv2.circle(fondo, (int(fondo.shape[1]/15), int(fondo.shape[0]/5)*2), 10, (0, 255, 189), 20)
@@ -87,20 +128,14 @@ while True:
         cv2.circle(fondo, (int(fondo.shape[1] / 15)*14, int(fondo.shape[0] / 5) * 3), 10, (98, 217, 35), 20)
         cv2.circle(fondo, (int(fondo.shape[1] / 15)*14, int(fondo.shape[0] / 5) * 4), 10, (65, 65, 191), 20)
 
-    """
-        r += 2
-        g += 3
-        b -= 6
-    
-        if r > 255:
-            r = 0
-        if g > 255:
-            g = 0
-        if b < 0:
-            b = 255
-    """
-    # Si el punto de referencia se encuentra dentro de las casillas se cambia el color
 
+    # Cambio de estados
+    if (int(fondo.shape[1] / 6) * 2 < x1 < int(fondo.shape[1] / 6) * 3) and (0 < y1 < int(fondo.shape[1] / 15)):
+        estado = 1
+    if (int(fondo.shape[1] / 6) * 3 < x1 < int(fondo.shape[1] / 6) * 4) and (0 < y1 < int(fondo.shape[1] / 15)):
+        estado = 0
+
+    # Si el punto de referencia se encuentra dentro de las casillas se cambia el color
     # Cuadrante Izquierda
     if (0 < x1 < int(fondo.shape[1]/15)) and (0 < y1 < int(fondo.shape[0]/5)):
         b, g, r = 232, 141, 12
@@ -114,7 +149,7 @@ while True:
     elif (0 < x1 < int(fondo.shape[1]/15)) and (int(fondo.shape[0]/5)*3 < y1 < int(fondo.shape[0]/5)*4):
         b, g, r = 21, 22, 232
 
-    # Cuadrante Derecha
+    # Colores Derecha
     elif (int(fondo.shape[1] / 15)*14 < x1 < int(fondo.shape[1])) and (0 < y1 < int(fondo.shape[0]/5)):
         b, g, r = 200, 136, 242
 
@@ -127,18 +162,6 @@ while True:
     elif (int(fondo.shape[1] / 15)*14 < x1 < int(fondo.shape[1])) and (int(fondo.shape[0]/5)*3 < y1 < int(fondo.shape[0]/5)*4):
         b, g, r = 191, 65, 65
 
-
-    cTime = time.time()
-    fps = 1 / (cTime - pTime)
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    pTime = cTime
-    fin = time.time()
-    seg = int(fin - inicio)
-    #print(seg)
-    if seg == (T*contador):
-        fondo = cv2.imread("persp2.png")
-        seg = 0
-        contador += 1
 
     cv2.putText(img, str(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 3,
                 (255, 0, 0), 3)
