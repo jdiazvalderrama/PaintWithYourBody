@@ -9,12 +9,12 @@ mpPose = mp.solutions.pose
 pose = mpPose.Pose()
 
 # Alto y ancho de frames
-width = 1200
-height = 800
+width = 1600
+height = 900
 
 
 # Definicion de captura de camara 0, 1, 2, 3 (Dependiendo de qu e camara quiero usar)
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 # Tiempo transcurrido
 pTime = 0
@@ -30,10 +30,10 @@ inicio = time.time()
 contador = 1
 
 # Definicion del estado (0 = Dibujo constante / 1 = Personaje estatico)
-estado = 1
+estado = 0
 
 # Definicion de imagen a usar
-imagen = "Fondo1.png"
+imagen = "Fondo3.png"
 
 # Definicion de fondo a usar
 fondo = cv2.imread(imagen)
@@ -45,7 +45,6 @@ pp1 = 20
 T = 5
 
 while True:
-
     cTime = time.time()
     fps = 1 / (cTime - pTime)
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -57,7 +56,6 @@ while True:
     if estado == 0:
         if seg == (T * contador):
             fondo = cv2.imread(imagen)
-            seg = 0
             contador += 1
     if estado == 1:
         fondo = cv2.imread(imagen)
